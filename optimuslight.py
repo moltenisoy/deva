@@ -62,6 +62,13 @@ except ImportError:
         GUI_AVAILABLE = False
         ProcessManagerGUI = None
 
+# Import WMI monitor for event-driven process monitoring
+try:
+    from wmi_monitor import create_process_monitor
+    WMI_MONITOR_AVAILABLE = True
+except ImportError:
+    WMI_MONITOR_AVAILABLE = False
+
 # --- POWER MANAGEMENT GUIDS (from backend.py) ---
 SUB_PROCESSOR = "54533251-82be-4824-96c1-47b60b740d00"
 PROCTHROTTLEMIN = "893dee8e-2bef-41e0-89c6-b55d0929964c"
@@ -1050,6 +1057,17 @@ class AdaptiveTimerResolutionManager:
             return False
 
 class AutomaticProfileManager:
+    """
+    Gestor de perfiles automáticos basado en el proceso activo.
+    
+    Detecta automáticamente si el sistema debe estar en modo Gaming o Productivity
+    basándose en los procesos en ejecución y ajusta las optimizaciones en consecuencia.
+    
+    Attributes:
+        current_profile: Perfil activo actualmente ('Gaming' o 'Productivity')
+        external_games: Set de nombres de procesos de juegos
+        profiles: Configuración de cada perfil
+    """
     def __init__(self, external_games=None):
         self.lock = threading.RLock()
         self.current_profile = 'Productivity'
@@ -1059,7 +1077,16 @@ class AutomaticProfileManager:
             'Productivity': {'cpu_priority': 'ABOVE_NORMAL', 'memory_priority': 'NORMAL', 'io_priority': 2, 'disable_background': False}
         }
 
-    def detect_profile(self, process_name):
+    def detect_profile(self, process_name: str) -> str:
+        """
+        Detecta el perfil apropiado basándose en el nombre del proceso.
+        
+        Args:
+            process_name: Nombre del proceso a evaluar
+        
+        Returns:
+            str: 'Gaming' o 'Productivity'
+        """
         with self.lock:
             process_lower = process_name.lower()
             if process_lower in self.external_games:
@@ -1076,6 +1103,16 @@ class AutomaticProfileManager:
             return self.profiles.get(profile_name, self.profiles[self.current_profile])
 
 class CPUPinningEngine:
+    """
+    Motor de asignación inteligente de CPU cores a procesos.
+    
+    Gestiona la asignación de cores específicos a procesos basándose en el tipo
+    de workload y la topología del sistema (NUMA, cache, P-cores vs E-cores).
+    
+    Attributes:
+        cpu_count: Número total de CPUs lógicas
+        numa_topology: Información de topología NUMA del sistema
+    """
     def __init__(self, cpu_count, numa_topology=None):
         self.cpu_count = cpu_count
         self.numa_topology = numa_topology or {}
@@ -1179,6 +1216,18 @@ class ForegroundDebouncer:
             self.pending_timer = None
 
 class ProcessSuspensionManager:
+    """
+    Gestor de suspensión de procesos inactivos.
+    
+    Suspende automáticamente procesos que han estado inactivos durante un tiempo
+    prolongado para liberar recursos del sistema, y los resume cuando vuelven a
+    ser necesarios.
+    
+    Attributes:
+        suspended_processes: Dict de procesos actualmente suspendidos
+        inactivity_threshold: Tiempo de inactividad en segundos antes de suspender
+        suspension_decision_cache: Cache de decisiones de suspensión
+    """
     def __init__(self):
         self.suspended_processes = {}
         self.inactivity_threshold = 900
@@ -1230,6 +1279,17 @@ class ProcessSuspensionManager:
             return False
 
 class ProcessTreeCache:
+    """
+    Cache del árbol de procesos del sistema.
+    
+    Mantiene un cache de relaciones padre-hijo entre procesos para evitar
+    reconstruir el árbol en cada consulta, mejorando el rendimiento.
+    
+    Attributes:
+        rebuild_interval: Intervalo mínimo entre reconstrucciones del árbol
+        parent_to_children: Mapa de PID padre a set de PIDs hijos
+        last_rebuild: Timestamp de la última reconstrucción
+    """
     def __init__(self, rebuild_interval_ms=2000):
         self.rebuild_interval = rebuild_interval_ms / 1000.0
         self.last_rebuild = 0
@@ -1398,7 +1458,24 @@ def enable_debug_privilege():
     return result and error == 0
 
 class MegatronEngine:
-    def disable_kernel_cep(self, pid):
+    """
+    Motor de optimizaciones extremas para procesos críticos.
+    
+    Proporciona optimizaciones de bajo nivel como deshabilitar mitigaciones de
+    seguridad para máximo rendimiento en juegos, y control de modos de eficiencia.
+    
+    Note:
+        Estas optimizaciones se deben usar solo en procesos de confianza como
+        juegos, ya que deshabilitan algunas protecciones de seguridad.
+    """
+    
+    def disable_kernel_cep(self, pid: int):
+        """
+        Deshabilita Control Flow Guard (CFG) para un proceso.
+        
+        Args:
+            pid: Process ID
+        """
         try:
             h = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
             if h:
@@ -1409,7 +1486,14 @@ class MegatronEngine:
                 kernel32.CloseHandle(h)
         except Exception: pass
 
-    def set_efficiency_mode(self, pid, enable=True):
+    def set_efficiency_mode(self, pid: int, enable: bool = True):
+        """
+        Establece modo de eficiencia (EcoQoS) para un proceso.
+        
+        Args:
+            pid: Process ID
+            enable: True para activar modo eficiencia, False para desactivar
+        """
         try:
             h = kernel32.OpenProcess(PROCESS_SET_INFORMATION, False, pid)
             if h:
@@ -1436,6 +1520,31 @@ class MegatronEngine:
         except Exception: pass
 
 class UnifiedProcessManager:
+    """
+    Gestor unificado de procesos con optimizaciones avanzadas de recursos.
+    
+    Esta clase coordina todas las optimizaciones del sistema, incluyendo CPU affinity,
+    prioridades de procesos, gestión de memoria, perfiles automáticos, y monitoreo
+    de procesos mediante eventos WMI para máxima eficiencia.
+    
+    Attributes:
+        lock: RLock para sincronización thread-safe
+        cpu_count: Número de CPUs lógicas del sistema
+        topology: Información de topología de CPU (P-cores, E-cores, cache, NUMA)
+        process_states: Estado actual de todos los procesos monitoreados
+        foreground_pid: PID del proceso en foreground actualmente
+        wmi_monitor: Monitor de eventos WMI para procesos (si está disponible)
+        profile_manager: Gestor de perfiles automáticos (Gaming, Productivity, etc.)
+    
+    Example:
+        >>> manager = UnifiedProcessManager(debug_privilege_enabled=True)
+        >>> manager_thread = threading.Thread(target=manager.run, daemon=True)
+        >>> manager_thread.start()
+    """
+    
+    # Configuration constants
+    POLLING_CHECK_INTERVAL = 5  # Check for new processes every N iterations when using polling fallback
+    
     def __init__(self, debug_privilege_enabled: bool=True):
         self.lock = threading.RLock()
         self.script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -1482,9 +1591,84 @@ class UnifiedProcessManager:
         
         self.blacklist_names = {'system', 'idle', 'smss.exe', 'csrss.exe', 'wininit.exe', 'winlogon.exe', 'services.exe', 'lsass.exe', 'svchost.exe', 'fontdrvhost.exe', 'registry', 'memcompression', 'sihost.exe', 'dwm.exe', 'ctfmon.exe', 'cmd.exe', 'python.exe', 'pythonw.exe', 'conhost.exe', 'taskmgr.exe', 'taskhostw.exe', 'runtimebroker.exe'}
         self.blacklist_contains = [r'\windows', 'defender', 'msmpeng.exe', 'wuauclt.exe', 'tiworker.exe']
+        
+        # Initialize WMI-based event-driven process monitoring
+        self.wmi_monitor = None
+        self._init_wmi_monitoring()
             
         self._apply_initial_optimizations()
 
+    def _init_wmi_monitoring(self):
+        """
+        Inicializa el monitoreo de procesos basado en eventos WMI.
+        
+        Reemplaza el polling ineficiente con monitoreo event-driven que tiene
+        casi 0% de uso de CPU cuando idle. Si WMI no está disponible, se usa
+        polling tradicional como fallback.
+        """
+        if not WMI_MONITOR_AVAILABLE:
+            return
+        
+        def process_event_callback(event_type: str, pid: int, name: str):
+            """
+            Callback para eventos de proceso desde WMI.
+            
+            Args:
+                event_type: 'create' o 'terminate'
+                pid: Process ID
+                name: Nombre del proceso
+            """
+            with self.lock:
+                if event_type == 'create':
+                    self._handle_new_process(pid, name)
+                elif event_type == 'terminate':
+                    self._handle_process_termination(pid)
+        
+        try:
+            self.wmi_monitor = create_process_monitor(process_event_callback)
+            self.wmi_monitor.start_monitoring()
+        except Exception as e:
+            # Si falla WMI, continuamos con polling tradicional
+            self.wmi_monitor = None
+    
+    def _handle_new_process(self, pid: int, name: str):
+        """
+        Maneja la detección de un nuevo proceso.
+        
+        Args:
+            pid: Process ID del nuevo proceso
+            name: Nombre del proceso
+        """
+        if self.is_whitelisted(pid) or self.is_blacklisted(pid):
+            return
+        
+        try:
+            current_foreground_pid = self.get_foreground_window_pid()
+            is_fg = (pid == current_foreground_pid)
+            
+            if pid not in self.process_states:
+                self.process_states[pid] = {
+                    'name': name,
+                    'is_foreground': is_fg,
+                    'created_at': time.time()
+                }
+                self.apply_settings_to_process_group(pid, is_fg)
+        except Exception:
+            pass
+    
+    def _handle_process_termination(self, pid: int):
+        """
+        Maneja la terminación de un proceso.
+        
+        Args:
+            pid: Process ID del proceso terminado
+        """
+        # Limpieza de estado
+        self.process_states.pop(pid, None)
+        self.applied_states.pop(pid, None)
+        self.minimized_processes.pop(pid, None)
+        self.pid_to_job.pop(pid, None)
+    
     def _apply_initial_optimizations(self):
         self.backup_manager.create_system_restore_point()
         self.static_tuner.run_full_static_optimization()
@@ -1598,6 +1782,12 @@ class UnifiedProcessManager:
         return {'foreground': foreground_cores, 'background': background_cores}
 
     def load_external_config(self):
+        """
+        Carga configuración externa desde config.json.
+        
+        Lee whitelist, blacklist y lista de juegos desde el archivo de configuración.
+        Solo recarga si el archivo ha sido modificado desde la última carga.
+        """
         try:
             config_path = os.path.join(self.script_dir, 'config.json')
             if os.path.exists(config_path):
@@ -1625,6 +1815,18 @@ class UnifiedProcessManager:
         return self.interned_process_names[name]
 
     def is_whitelisted(self, pid: int) -> bool:
+        """
+        Verifica si un proceso está en la whitelist.
+        
+        Los procesos en whitelist no son gestionados por el optimizador para
+        evitar interferir con procesos críticos o de alta prioridad.
+        
+        Args:
+            pid: Process ID a verificar
+        
+        Returns:
+            bool: True si el proceso está en whitelist, False en caso contrario
+        """
         try:
             process = psutil.Process(pid)
             name = self._intern_process_name(process.name().lower())
@@ -1643,6 +1845,18 @@ class UnifiedProcessManager:
             return False
 
     def is_blacklisted(self, pid: int) -> bool:
+        """
+        Verifica si un proceso está en la blacklist.
+        
+        Los procesos en blacklist nunca son gestionados por el optimizador,
+        incluyendo procesos del sistema, servicios críticos de Windows, etc.
+        
+        Args:
+            pid: Process ID a verificar
+        
+        Returns:
+            bool: True si el proceso está en blacklist, False en caso contrario
+        """
         if pid <= 4: return True
         try:
             p = psutil.Process(pid)
@@ -1741,98 +1955,276 @@ class UnifiedProcessManager:
         self.applied_states[pid] = state
 
     def apply_all_settings(self, pid: int, is_foreground: bool):
+        """
+        Aplica configuraciones completas a un proceso (Complejidad reducida a 5).
+        
+        Este método coordina la aplicación de todas las optimizaciones de recursos
+        a un proceso específico, incluyendo CPU, memoria, I/O y prioridades según
+        si está en foreground o background.
+        
+        Args:
+            pid: Process ID del proceso a optimizar
+            is_foreground: True si el proceso está en foreground, False si está en background
+        
+        Note:
+            Procesos en whitelist o blacklist son ignorados automáticamente.
+        """
         if self.is_whitelisted(pid) or self.is_blacklisted(pid):
             return
+        
         try:
+            self._handle_suspension_state(pid, is_foreground)
+            process_info = self._get_process_info(pid)
+            
+            if not process_info:
+                return
+                
+            self._apply_profile_settings(pid, process_info, is_foreground)
+            self._apply_efficiency_modes(pid, process_info, is_foreground)
+            self._apply_resource_settings(pid, process_info, is_foreground)
+            
             if is_foreground:
-                if self.suspension_manager.suspended_processes.get(pid):
-                    self.suspension_manager.resume_process(pid)
-                self.minimized_processes.pop(pid, None)
-            elif not is_foreground and pid not in self.minimized_processes:
-                self.minimized_processes[pid] = time.time()
-
-            try:
-                process = psutil.Process(pid)
-                process_name = process.name()
-                previous_profile = self.profile_manager.current_profile
-                new_profile = self.profile_manager.detect_profile(process_name)
+                self._apply_foreground_optimizations(pid, process_info)
+            else:
+                self._apply_background_optimizations(pid)
                 
-                is_god_mode_target = process_name.lower() in self.ext_games
-                
-                if is_god_mode_target:
-                    self.megatron_engine.disable_kernel_cep(pid)
-                    self.megatron_engine.set_efficiency_mode(pid, False)
-                elif not is_foreground:
-                    self.megatron_engine.set_efficiency_mode(pid, True)
-                
-                if is_foreground and new_profile == 'Gaming' and previous_profile != 'Gaming':
-                    self.windows_optimizer.optimize_service_group(ServiceCategories.TELEMETRY)
-                    self.windows_optimizer.optimize_service_group(ServiceCategories.UPDATE)
-                elif is_foreground and new_profile != 'Gaming' and previous_profile == 'Gaming':
-                    self.windows_optimizer.restore_all()
-
-                profile_settings = self.profile_manager.get_profile_settings()
-                
-                cores, desired_prio, desired_io, desired_thread_io, desired_page, desired_disable_boost, trim_ws, use_eco_qos = self._desired_settings_for_role(is_foreground, pid)
-                
-                if is_god_mode_target:
-                    use_eco_qos = False
-                    trim_ws = False
-                
-                process.nice(desired_prio)
-                process.cpu_affinity(cores)
-                try:
-                    process.ionice(desired_io)
-                except Exception: pass
-
-                handle = win32api.OpenProcess(PROCESS_SET_INFORMATION | PROCESS_QUERY_INFORMATION | PROCESS_SET_QUOTA, False, pid)
-                if handle:
-                    try:
-                        if desired_disable_boost:
-                            kernel32.SetProcessPriorityBoost(handle, wintypes.BOOL(True))
-                        
-                        if use_eco_qos:
-                            throttling_state = PROCESS_POWER_THROTTLING_STATE()
-                            throttling_state.Version = 1
-                            throttling_state.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED
-                            throttling_state.StateMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED
-                            kernel32.SetProcessInformation(handle, ProcessPowerThrottling, ctypes.byref(throttling_state), ctypes.sizeof(throttling_state))
-                        
-                        page_priority_info = MEMORY_PRIORITY_INFORMATION()
-                        page_priority_info.MemoryPriority = desired_page
-                        ntdll.NtSetInformationProcess(int(handle), ProcessPagePriority, ctypes.byref(page_priority_info), ctypes.sizeof(page_priority_info))
-
-                        if trim_ws:
-                            kernel32.SetProcessWorkingSetSize(handle, ctypes.c_size_t(-1), ctypes.c_size_t(-1))
-
-                    finally:
-                        win32api.CloseHandle(handle)
-
-                if is_foreground:
-                    num_threads = process.num_threads()
-                    workload = 'general'
-                    is_latency_sensitive = False
-                    if new_profile == 'Gaming':
-                        workload = 'latency_sensitive'
-                        is_latency_sensitive = True
-                    elif num_threads <= 8:
-                        workload = 'latency_sensitive'
-                        is_latency_sensitive = True
-                         
-                    self.cpu_pinning.apply_intelligent_pinning(pid, cores, workload)
-                    if is_latency_sensitive:
-                        self.smt_optimizer.optimize_for_latency(pid)
-
-                    self.advanced_memory_page_manager.analyze_working_set(pid)
-                    self.advanced_memory_page_manager.optimize_page_priority(pid, is_foreground=True)
-                    
-                else:
-                    self.advanced_memory_page_manager.optimize_page_priority(pid, is_foreground=False)
-
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                pass
         except Exception:
             pass
+    
+    def _handle_suspension_state(self, pid: int, is_foreground: bool):
+        """
+        Maneja estado de suspensión del proceso.
+        
+        Args:
+            pid: Process ID
+            is_foreground: True si el proceso está en foreground
+        """
+        if is_foreground:
+            if self.suspension_manager.suspended_processes.get(pid):
+                self.suspension_manager.resume_process(pid)
+            self.minimized_processes.pop(pid, None)
+        elif not is_foreground and pid not in self.minimized_processes:
+            self.minimized_processes[pid] = time.time()
+    
+    def _get_process_info(self, pid: int) -> Optional[Dict]:
+        """
+        Obtiene información del proceso.
+        
+        Args:
+            pid: Process ID
+        
+        Returns:
+            Dict con información del proceso o None si no se puede acceder
+        """
+        try:
+            process = psutil.Process(pid)
+            return {
+                'name': process.name(),
+                'num_threads': process.num_threads(),
+                'process': process
+            }
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            return None
+    
+    def _apply_profile_settings(self, pid: int, info: Dict, is_foreground: bool):
+        """
+        Aplica configuración de perfil.
+        
+        Args:
+            pid: Process ID
+            info: Información del proceso
+            is_foreground: True si el proceso está en foreground
+        """
+        name = info['name']
+        previous_profile = self.profile_manager.current_profile
+        new_profile = self.profile_manager.detect_profile(name)
+        
+        is_game = name.lower() in self.ext_games
+        
+        if is_foreground and new_profile != previous_profile:
+            self._handle_profile_transition(new_profile, previous_profile, is_game)
+    
+    def _handle_profile_transition(self, new_profile: str, previous_profile: str, is_game: bool):
+        """
+        Maneja transición entre perfiles.
+        
+        Args:
+            new_profile: Nuevo perfil detectado
+            previous_profile: Perfil anterior
+            is_game: True si es un juego
+        """
+        if new_profile == 'Gaming' and previous_profile != 'Gaming':
+            self.windows_optimizer.optimize_service_group(ServiceCategories.TELEMETRY)
+            self.windows_optimizer.optimize_service_group(ServiceCategories.UPDATE)
+        elif new_profile != 'Gaming' and previous_profile == 'Gaming':
+            self.windows_optimizer.restore_all()
+    
+    def _apply_efficiency_modes(self, pid: int, info: Dict, is_foreground: bool):
+        """
+        Aplica modos de eficiencia.
+        
+        Args:
+            pid: Process ID
+            info: Información del proceso
+            is_foreground: True si el proceso está en foreground
+        """
+        is_game = info['name'].lower() in self.ext_games
+        
+        if is_game:
+            self.megatron_engine.disable_kernel_cep(pid)
+            self.megatron_engine.set_efficiency_mode(pid, False)
+        elif not is_foreground:
+            self.megatron_engine.set_efficiency_mode(pid, True)
+    
+    def _apply_resource_settings(self, pid: int, info: Dict, is_foreground: bool):
+        """
+        Aplica configuración de recursos (CPU, memoria, I/O).
+        
+        Args:
+            pid: Process ID
+            info: Información del proceso
+            is_foreground: True si el proceso está en foreground
+        """
+        settings = self._desired_settings_for_role(is_foreground, pid)
+        cores, prio, io_prio, _, page_prio, disable_boost, trim_ws, use_eco = settings
+        
+        process = info['process']
+        is_game = info['name'].lower() in self.ext_games
+        
+        # Ajustes para juegos
+        if is_game:
+            use_eco = False
+            trim_ws = False
+        
+        # CPU priority y affinity
+        process.nice(prio)
+        process.cpu_affinity(cores)
+        
+        # I/O priority
+        try:
+            process.ionice(io_prio)
+        except Exception:
+            pass
+        
+        # Configuración avanzada de proceso
+        self._apply_advanced_process_config(pid, page_prio, trim_ws, use_eco, disable_boost)
+    
+    def _apply_advanced_process_config(self, pid: int, page_prio: int, 
+                                      trim_ws: bool, use_eco: bool, disable_boost: bool):
+        """
+        Aplica configuración avanzada de Windows.
+        
+        Args:
+            pid: Process ID
+            page_prio: Prioridad de página de memoria
+            trim_ws: Si debe hacer trim del working set
+            use_eco: Si debe usar modo eco/throttling
+            disable_boost: Si debe deshabilitar boost de prioridad
+        """
+        try:
+            handle = win32api.OpenProcess(
+                PROCESS_SET_INFORMATION | PROCESS_QUERY_INFORMATION | PROCESS_SET_QUOTA,
+                False, pid
+            )
+            if not handle:
+                return
+                
+            try:
+                # Priority boost
+                if disable_boost:
+                    kernel32.SetProcessPriorityBoost(handle, wintypes.BOOL(True))
+                
+                # Power throttling
+                if use_eco:
+                    self._set_eco_qos(handle)
+                
+                # Memory priority
+                self._set_memory_priority(handle, page_prio)
+                
+                # Working set trim
+                if trim_ws:
+                    kernel32.SetProcessWorkingSetSize(
+                        handle, ctypes.c_size_t(-1), ctypes.c_size_t(-1)
+                    )
+            finally:
+                win32api.CloseHandle(handle)
+        except Exception:
+            pass
+    
+    def _set_eco_qos(self, handle):
+        """
+        Establece modo de ahorro de energía (EcoQoS).
+        
+        Args:
+            handle: Handle del proceso
+        """
+        try:
+            throttling_state = PROCESS_POWER_THROTTLING_STATE()
+            throttling_state.Version = 1
+            throttling_state.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED
+            throttling_state.StateMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED
+            kernel32.SetProcessInformation(
+                handle, ProcessPowerThrottling,
+                ctypes.byref(throttling_state),
+                ctypes.sizeof(throttling_state)
+            )
+        except Exception:
+            pass
+    
+    def _set_memory_priority(self, handle, page_prio: int):
+        """
+        Establece prioridad de memoria del proceso.
+        
+        Args:
+            handle: Handle del proceso
+            page_prio: Prioridad de página
+        """
+        try:
+            page_priority_info = MEMORY_PRIORITY_INFORMATION()
+            page_priority_info.MemoryPriority = page_prio
+            ntdll.NtSetInformationProcess(
+                int(handle), ProcessPagePriority,
+                ctypes.byref(page_priority_info),
+                ctypes.sizeof(page_priority_info)
+            )
+        except Exception:
+            pass
+    
+    def _apply_foreground_optimizations(self, pid: int, info: Dict):
+        """
+        Optimizaciones específicas para proceso en foreground.
+        
+        Args:
+            pid: Process ID
+            info: Información del proceso
+        """
+        cores = self.core_config['foreground']
+        profile = self.profile_manager.current_profile
+        
+        # Determinar tipo de workload
+        is_latency_sensitive = (
+            profile == 'Gaming' or 
+            info['num_threads'] <= 8
+        )
+        
+        workload = 'latency_sensitive' if is_latency_sensitive else 'general'
+        
+        self.cpu_pinning.apply_intelligent_pinning(pid, cores, workload)
+        if is_latency_sensitive:
+            self.smt_optimizer.optimize_for_latency(pid)
+        
+        # Optimización de memoria
+        self.advanced_memory_page_manager.analyze_working_set(pid)
+        self.advanced_memory_page_manager.optimize_page_priority(pid, True)
+    
+    def _apply_background_optimizations(self, pid: int):
+        """
+        Optimizaciones para proceso en background.
+        
+        Args:
+            pid: Process ID
+        """
+        self.advanced_memory_page_manager.optimize_page_priority(pid, False)
 
     def apply_settings_to_process_group(self, pid, is_foreground):
         try:
@@ -1964,6 +2356,15 @@ class UnifiedProcessManager:
                         self.suspension_manager.suspend_process(pid)
 
     def update_all_processes(self, iteration):
+        """
+        Actualiza el estado de todos los procesos.
+        
+        Con WMI event-driven monitoring, este método solo necesita manejar
+        actualizaciones periódicas de estado en lugar de descubrir nuevos procesos.
+        
+        Args:
+            iteration: Contador de iteraciones para operaciones periódicas
+        """
         if iteration % 10 == 0:
             self.load_external_config()
         
@@ -1972,7 +2373,8 @@ class UnifiedProcessManager:
             if current_foreground_pid and current_foreground_pid != self.foreground_pid:
                 self._on_foreground_changed(current_foreground_pid)
             
-            if iteration % 5 == 0:
+            # Si WMI no está disponible, usar polling tradicional
+            if not self.wmi_monitor and iteration % self.POLLING_CHECK_INTERVAL == 0:
                 for proc in psutil.process_iter(['pid', 'name']):
                     pid = proc.info['pid']
                     if self.is_whitelisted(pid) or self.is_blacklisted(pid):
@@ -1995,6 +2397,16 @@ class UnifiedProcessManager:
                 self._check_and_suspend_inactive_processes()
 
     def run(self):
+        """
+        Bucle principal del gestor de procesos.
+        
+        Ejecuta el ciclo de optimización continua, actualizando estados de procesos,
+        ajustando resolución de timer, y ejecutando garbage collection periódicamente.
+        
+        Este método se ejecuta en un thread separado y continúa hasta que se
+        interrumpe manualmente o ocurre un error, momento en el cual restaura
+        las optimizaciones del sistema.
+        """
         self.dpc_latency_controller.optimize_dpc_latency()
         iteration_count = 0
         try:
