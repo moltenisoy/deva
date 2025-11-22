@@ -1303,7 +1303,7 @@ class SystemTrayManager:
             self._deactivate_game_mode()
     
     def clean_temp_files(self, icon, item):
-        temps = [os.environ.get("TEMP"), os.environ.get("TMP"), "C:\Windows\Temp", "C:\Windows\Prefetch"]
+        temps = [os.environ.get("TEMP"), os.environ.get("TMP"), r"C:\Windows\Temp", r"C:\Windows\Prefetch"]
         for t in temps:
             if t and os.path.exists(t):
                 try:
@@ -1424,7 +1424,7 @@ class MegatronEngine:
 
     def apply_max_spectre_meltdown_off(self, exe):
         try:
-            path = f"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\{exe}"
+            path = f"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\{exe}"
             with winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, path, 0, winreg.KEY_SET_VALUE | winreg.KEY_WOW64_64KEY) as k:
                 winreg.SetValueEx(k, "FeatureSettingsOverride", 0, winreg.REG_DWORD, 0x3FF)
                 winreg.SetValueEx(k, "FeatureSettingsOverrideMask", 0, winreg.REG_DWORD, 0x3FF)
