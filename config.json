@@ -9,16 +9,32 @@
   },
   "process_whitelist": [],
   "game_processes": [],
-  "optimizer_enabled": false,
+  "optimizer_enabled": true,
+  "unified_optimizer_mode": true,
   "energy_saving_mode": true,
   "game_mode": false,
   "extra_function_2": false,
   "extra_function_3": false,
   "thermal_management": {
+    "enabled": true,
     "soft_throttle_temp": 75,
     "aggressive_throttle_temp": 85,
     "emergency_shutdown_temp": 95,
-    "show_temp_in_tray": false
+    "show_temp_in_tray": true
+  },
+  "power_management": {
+    "mode": "baja_latencia",
+    "auto_backup": true,
+    "restore_on_exit": false
+  },
+  "advanced_optimizations": {
+    "static_system_tuner": true,
+    "device_msi_mode": true,
+    "network_optimizations": true,
+    "filesystem_tweaks": true,
+    "dpc_latency_control": true,
+    "input_latency_optimization": true,
+    "storage_optimization": true
   },
   "minutes_before_check": 1,
   "desktop_check_enabled": true,
@@ -31,6 +47,5 @@
   "notification_duration_seconds": 5,
   "create_desktop_shortcut": true,
   "check_interval_seconds_after_first_run": 0,
-  "power_mode": "ahorro",
-  "low_latency_mode": false
+  "power_mode": "baja_latencia"
 }
