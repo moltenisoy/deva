@@ -1,0 +1,36 @@
+{
+  "idle_process_monitoring": {
+    "idle_minutes_threshold": 60,
+    "check_interval_seconds": 60,
+    "low_activity_percent_threshold": 1.0,
+    "high_activity_percent_threshold": 5.0,
+    "inherit_file_whitelist_as_process_names": false,
+    "process_whitelist": []
+  },
+  "process_whitelist": [],
+  "game_processes": [],
+  "optimizer_enabled": false,
+  "energy_saving_mode": true,
+  "game_mode": false,
+  "extra_function_2": false,
+  "extra_function_3": false,
+  "thermal_management": {
+    "soft_throttle_temp": 75,
+    "aggressive_throttle_temp": 85,
+    "emergency_shutdown_temp": 95,
+    "show_temp_in_tray": false
+  },
+  "minutes_before_check": 1,
+  "desktop_check_enabled": true,
+  "desktop_min_files": 12,
+  "downloads_check_enabled": true,
+  "downloads_min_files": 12,
+  "destination_base_folder": "C:\\Biblioteca Inteligente",
+  "handle_duplicates": "rename",
+  "notification_enabled": true,
+  "notification_duration_seconds": 5,
+  "create_desktop_shortcut": true,
+  "check_interval_seconds_after_first_run": 0,
+  "power_mode": "ahorro",
+  "low_latency_mode": false
+}

@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-11-21T22:03:51.078657",
+  "scheme_guid": "a1841308-3541-4fab-bc81-f71556f20b4a",
+  "processor": {
+    "ac": {
+      "min": null,
+      "max": null,
+      "boost": null,
+      "park_min": null,
+      "park_max": null
+    },
+    "dc": {
+      "min": null,
+      "max": null,
+      "boost": null
+    }
+  },
+  "pcie": {
+    "ac": {
+      "aspm": null
+    }
+  }
+}
