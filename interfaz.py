@@ -11,7 +11,6 @@ import pystray
 from PIL import Image, ImageDraw
 import threading
 import ctypes
-import backend
 import multiprocessing
 import procesos
 import time
@@ -164,10 +163,10 @@ class App(tk.Tk):
         self.config = load_config()
         self.ensure_config_defaults()
         self.optimus_process = None
-        self.backend_monitor = backend.TemperatureMonitor()
+        self.backend_monitor = optimuslight.TemperatureMonitor()
         self.backend_monitor.show_in_tray = self.config["thermal_management"].get("show_temp_in_tray", True)
         threading.Thread(target=self.backend_monitor.start_monitoring, daemon=True).start()
-        backend.apply_power_mode(self.config["power_mode"])
+        optimuslight.apply_power_mode(self.config["power_mode"])
         self.tray_icon = None
         self.setup_tray_icon()
         self.style = ttk.Style(self)
@@ -438,7 +437,7 @@ class App(tk.Tk):
     def set_power_mode_and_sync(self, mode_name):
         self.config["power_mode"] = mode_name
         save_config(self.config)
-        backend.apply_power_mode(mode_name)
+        optimuslight.apply_power_mode(mode_name)
 
     def on_extra_toggle(self, idx):
         var = getattr(self, f"extra_function_{idx}_var")
