@@ -1541,6 +1541,10 @@ class UnifiedProcessManager:
         >>> manager_thread = threading.Thread(target=manager.run, daemon=True)
         >>> manager_thread.start()
     """
+    
+    # Configuration constants
+    POLLING_CHECK_INTERVAL = 5  # Check for new processes every N iterations when using polling fallback
+    
     def __init__(self, debug_privilege_enabled: bool=True):
         self.lock = threading.RLock()
         self.script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -2370,7 +2374,7 @@ class UnifiedProcessManager:
                 self._on_foreground_changed(current_foreground_pid)
             
             # Si WMI no está disponible, usar polling tradicional
-            if not self.wmi_monitor and iteration % 5 == 0:
+            if not self.wmi_monitor and iteration % self.POLLING_CHECK_INTERVAL == 0:
                 for proc in psutil.process_iter(['pid', 'name']):
                     pid = proc.info['pid']
                     if self.is_whitelisted(pid) or self.is_blacklisted(pid):

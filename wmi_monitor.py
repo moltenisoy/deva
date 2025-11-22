@@ -11,6 +11,10 @@ import time
 from threading import Thread
 from typing import Callable, Optional
 
+# Configuration constants
+POLLING_INTERVAL_SECONDS = 3  # Interval for fallback polling mode
+WMI_TIMEOUT_MS = 100  # Timeout for WMI event watchers
+
 logger = logging.getLogger(__name__)
 
 # WMI is optional and may not be available
@@ -123,7 +127,7 @@ class WMIProcessMonitor:
             while self.running:
                 try:
                     # Blocking call with timeout, minimal CPU usage
-                    new_process = watcher_start(timeout_ms=100)
+                    new_process = watcher_start(timeout_ms=WMI_TIMEOUT_MS)
                     if new_process:
                         try:
                             self.callback(
@@ -134,7 +138,7 @@ class WMIProcessMonitor:
                         except Exception as e:
                             logger.error(f"Error in callback for process creation: {e}")
                     
-                    stopped_process = watcher_stop(timeout_ms=100)
+                    stopped_process = watcher_stop(timeout_ms=WMI_TIMEOUT_MS)
                     if stopped_process:
                         try:
                             self.callback(
@@ -233,7 +237,7 @@ class FallbackPollingMonitor:
             except Exception as e:
                 logger.error(f"Error in polling loop: {e}")
             
-            time.sleep(3)  # Poll every 3 seconds
+            time.sleep(POLLING_INTERVAL_SECONDS)
 
 
 def create_process_monitor(callback: Callable[[str, int, str], None]) -> object:
