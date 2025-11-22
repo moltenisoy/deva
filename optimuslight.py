@@ -1216,6 +1216,18 @@ class ForegroundDebouncer:
             self.pending_timer = None
 
 class ProcessSuspensionManager:
+    """
+    Gestor de suspensión de procesos inactivos.
+    
+    Suspende automáticamente procesos que han estado inactivos durante un tiempo
+    prolongado para liberar recursos del sistema, y los resume cuando vuelven a
+    ser necesarios.
+    
+    Attributes:
+        suspended_processes: Dict de procesos actualmente suspendidos
+        inactivity_threshold: Tiempo de inactividad en segundos antes de suspender
+        suspension_decision_cache: Cache de decisiones de suspensión
+    """
     def __init__(self):
         self.suspended_processes = {}
         self.inactivity_threshold = 900
@@ -1267,6 +1279,17 @@ class ProcessSuspensionManager:
             return False
 
 class ProcessTreeCache:
+    """
+    Cache del árbol de procesos del sistema.
+    
+    Mantiene un cache de relaciones padre-hijo entre procesos para evitar
+    reconstruir el árbol en cada consulta, mejorando el rendimiento.
+    
+    Attributes:
+        rebuild_interval: Intervalo mínimo entre reconstrucciones del árbol
+        parent_to_children: Mapa de PID padre a set de PIDs hijos
+        last_rebuild: Timestamp de la última reconstrucción
+    """
     def __init__(self, rebuild_interval_ms=2000):
         self.rebuild_interval = rebuild_interval_ms / 1000.0
         self.last_rebuild = 0
@@ -1435,7 +1458,24 @@ def enable_debug_privilege():
     return result and error == 0
 
 class MegatronEngine:
-    def disable_kernel_cep(self, pid):
+    """
+    Motor de optimizaciones extremas para procesos críticos.
+    
+    Proporciona optimizaciones de bajo nivel como deshabilitar mitigaciones de
+    seguridad para máximo rendimiento en juegos, y control de modos de eficiencia.
+    
+    Note:
+        Estas optimizaciones se deben usar solo en procesos de confianza como
+        juegos, ya que deshabilitan algunas protecciones de seguridad.
+    """
+    
+    def disable_kernel_cep(self, pid: int):
+        """
+        Deshabilita Control Flow Guard (CFG) para un proceso.
+        
+        Args:
+            pid: Process ID
+        """
         try:
             h = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
             if h:
@@ -1446,7 +1486,14 @@ class MegatronEngine:
                 kernel32.CloseHandle(h)
         except Exception: pass
 
-    def set_efficiency_mode(self, pid, enable=True):
+    def set_efficiency_mode(self, pid: int, enable: bool = True):
+        """
+        Establece modo de eficiencia (EcoQoS) para un proceso.
+        
+        Args:
+            pid: Process ID
+            enable: True para activar modo eficiencia, False para desactivar
+        """
         try:
             h = kernel32.OpenProcess(PROCESS_SET_INFORMATION, False, pid)
             if h:
@@ -1731,6 +1778,12 @@ class UnifiedProcessManager:
         return {'foreground': foreground_cores, 'background': background_cores}
 
     def load_external_config(self):
+        """
+        Carga configuración externa desde config.json.
+        
+        Lee whitelist, blacklist y lista de juegos desde el archivo de configuración.
+        Solo recarga si el archivo ha sido modificado desde la última carga.
+        """
         try:
             config_path = os.path.join(self.script_dir, 'config.json')
             if os.path.exists(config_path):
@@ -1758,6 +1811,18 @@ class UnifiedProcessManager:
         return self.interned_process_names[name]
 
     def is_whitelisted(self, pid: int) -> bool:
+        """
+        Verifica si un proceso está en la whitelist.
+        
+        Los procesos en whitelist no son gestionados por el optimizador para
+        evitar interferir con procesos críticos o de alta prioridad.
+        
+        Args:
+            pid: Process ID a verificar
+        
+        Returns:
+            bool: True si el proceso está en whitelist, False en caso contrario
+        """
         try:
             process = psutil.Process(pid)
             name = self._intern_process_name(process.name().lower())
@@ -1776,6 +1841,18 @@ class UnifiedProcessManager:
             return False
 
     def is_blacklisted(self, pid: int) -> bool:
+        """
+        Verifica si un proceso está en la blacklist.
+        
+        Los procesos en blacklist nunca son gestionados por el optimizador,
+        incluyendo procesos del sistema, servicios críticos de Windows, etc.
+        
+        Args:
+            pid: Process ID a verificar
+        
+        Returns:
+            bool: True si el proceso está en blacklist, False en caso contrario
+        """
         if pid <= 4: return True
         try:
             p = psutil.Process(pid)
@@ -2316,6 +2393,16 @@ class UnifiedProcessManager:
                 self._check_and_suspend_inactive_processes()
 
     def run(self):
+        """
+        Bucle principal del gestor de procesos.
+        
+        Ejecuta el ciclo de optimización continua, actualizando estados de procesos,
+        ajustando resolución de timer, y ejecutando garbage collection periódicamente.
+        
+        Este método se ejecuta en un thread separado y continúa hasta que se
+        interrumpe manualmente o ocurre un error, momento en el cual restaura
+        las optimizaciones del sistema.
+        """
         self.dpc_latency_controller.optimize_dpc_latency()
         iteration_count = 0
         try:
