@@ -292,7 +292,7 @@ netsh int tcp set global rss=enabled >nul 2>&1
 
 netsh int tcp set global chimney=enabled >nul 2>&1
 
-netsh interface ipv4 set subinterface ԅthernetԠmtu=1500 store=persistent >nul 2>&1
+netsh interface ipv4 set subinterface "Ethernet" mtu=1500 store=persistent >nul 2>&1
 
 netsh int ipv4 set dynamicportrange protocol=tcp start=1025 num=64511 >nul 2>&1
 
@@ -528,9 +528,7 @@ Reg.exe add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "Disabl
 
 Reg.exe add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "NetworkThrottlingIndex" /t REG_DWORD /d "4294967295" /f >nul 2>&1
 
-for /f %%i in ('wmic path win32_NetworkAdapter get PNPDeviceID') do set "str=%%i" & (
-
-for /f %%q in ('wmic path win32_networkadapter get GUID ^| findstr "{"') do Reg.exe add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\%%q" /v InterfaceMetric /t REG_DWORD /d "55" /f
+for /f %%q in ('wmic path win32_networkadapter get GUID 2^>nul ^| findstr "{"') do Reg.exe add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\%%q" /v InterfaceMetric /t REG_DWORD /d "55" /f >nul 2>&1
 
 for /f %%q in ('wmic path win32_networkadapter get GUID ^| findstr "{"') do Reg.exe add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\%%q" /v TCPNoDelay /t REG_DWORD /d "1" /f
 
