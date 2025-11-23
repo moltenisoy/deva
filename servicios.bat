@@ -843,10 +843,10 @@ net stop "WSearch" >nul 2>&1
 sc config "DcomLaunch" start= auto >nul 2>&1
 sc config "RpcSs" start= auto >nul 2>&1
 sc config "CryptSvc" start= auto >nul 2>&1
-[cite_start]sc config "DiagTrack" start= disabled [cite: 2267, 2442, 2884, 3073, 3079, 3314, 3360, 3400, 3416, 3462, 3841] >nul 2>&1
-[cite_start]sc config "dmwappushservice" start= disabled [cite: 2266, 2273, 2285, 3073, 3079, 3315, 3400, 3462, 3472, 3481] >nul 2>&1
-[cite_start]sc config "WerSvc" start= disabled [cite: 2167, 2286, 2442, 2448, 3001, 3082, 3315, 3400, 3462, 3481] >nul 2>&1
-[cite_start]sc config "SysMain" start= disabled [cite: 2100, 2447, 2448, 3073, 3317, 3416, 3922] >nul 2>&1
+sc config "DiagTrack" start= disabled  >nul 2>&1
+sc config "dmwappushservice" start= disabled  >nul 2>&1
+sc config "WerSvc" start= disabled  >nul 2>&1
+sc config "SysMain" start= disabled  >nul 2>&1
 sc config AppVClient start=disabled >nul 2>&1
 sc stop AppVClient >nul 2>&1
 sc config AssignedAccessManagerSvc start=disabled >nul 2>&1

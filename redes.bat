@@ -229,16 +229,16 @@ netsh int tcp set global ackdelay=0 >nul 2>&1
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "EnableNetDMA" /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" /v "DisabledComponents" /t REG_DWORD /d 255 /f >nul 2>&1
 reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" /v "EnableMulticast" /t REG_DWORD /d 0 /f >nul 2>&1
-[cite_start]reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "NetworkThrottlingIndex" /t REG_DWORD /d "4294967295" /f [cite: 2116, 2259, 2310, 2421, 3356, 3646, 3705] >nul 2>&1
-[cite_start]netsh int tcp set global autotuninglevel=normal [cite: 2311, 2461, 3340, 3431] >nul 2>&1
-[cite_start]netsh int tcp set global congestionprovider=ctcp [cite: 2231, 2293, 2312, 3340, 3426, 3705, 3866] >nul 2>&1
-[cite_start]netsh int tcp set global ecncapability=disabled [cite: 2279, 2293, 2312, 3340, 3431, 3700] >nul 2>&1
-[cite_start]netsh int tcp set global timestamps=disabled [cite: 2231, 2293, 2312, 3340, 3431] >nul 2>&1
-[cite_start]netsh interface teredo set state disabled [cite: 2152, 2279, 3490] >nul 2>&1
-[cite_start]reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "TcpAckFrequency" /t REG_DWORD /d "1" /f [cite: 2132, 2310, 2375, 3340, 3430, 3450] >nul 2>&1
-[cite_start]reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "TCPNoDelay" /t REG_DWORD /d "1" /f [cite: 2133, 2310, 2376, 3340, 3430, 3451] >nul 2>&1
-[cite_start]reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "TcpDelAckTicks" /t REG_DWORD /d "0" /f [cite: 2232, 2255, 2257, 2602, 3280, 3340, 3354, 3414] >nul 2>&1
-[cite_start]reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d "1" /f [cite: 2270, 2297, 2425, 3283, 3333, 3468] >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "NetworkThrottlingIndex" /t REG_DWORD /d "4294967295" /f  >nul 2>&1
+netsh int tcp set global autotuninglevel=normal  >nul 2>&1
+netsh int tcp set global congestionprovider=ctcp  >nul 2>&1
+netsh int tcp set global ecncapability=disabled  >nul 2>&1
+netsh int tcp set global timestamps=disabled  >nul 2>&1
+netsh interface teredo set state disabled  >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "TcpAckFrequency" /t REG_DWORD /d "1" /f  >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "TCPNoDelay" /t REG_DWORD /d "1" /f  >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "TcpDelAckTicks" /t REG_DWORD /d "0" /f  >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" /v "PowerThrottlingOff" /t REG_DWORD /d "1" /f  >nul 2>&1
 sc stop lmhosts >nul 2>&1
 sc config RasMan start=disabled >nul 2>&1
 sc stop RasMan >nul 2>&1

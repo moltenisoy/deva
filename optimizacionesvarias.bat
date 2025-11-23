@@ -1484,12 +1484,12 @@ powercfg -setacvalueindex SCHEME_CURRENT SUB_PROCESSOR IDLEDISABLE 000 >nul 2>&1
 powercfg -setdcvalueindex SCHEME_CURRENT SUB_PROCESSOR IDLEDISABLE 000 >nul 2>&1
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318583" /v "Attributes" /t REG_DWORD /d 2 /f >nul 2>&1
 reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "Scheduler Response (ms)" /t REG_DWORD /d 1 /f >nul 2>&1
-[cite_start]reg add "HKLM\SYSTEM\CurrentControlSet\Control\PriorityControl" /v "Win32PrioritySeparation" /t REG_DWORD /d "38" /f [cite: 1971, 2108, 2295] >nul 2>&1
-[cite_start]reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d "0" /f [cite: 2116, 2309, 2384, 2520] >nul 2>&1
-[cite_start]powercfg /h off [cite: 2134, 2257, 2300, 2417, 3213, 3331] >nul 2>&1
-[cite_start]powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR CPMINCORES 100 [cite: 2117, 3096, 3417, 3694] >nul 2>&1
-[cite_start]powercfg /setacvalueindex SCHEME_CURRENT SUB_PCIEXPRESS ASPM 0 [cite: 2195, 2302] >nul 2>&1
-[cite_start]reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f [cite: 2245, 2276, 2385, 3056, 3176, 3262, 3268, 3320, 3360, 3400, 3419, 3439, 3463, 3480, 3601, 3643, 3800, 3902] >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\PriorityControl" /v "Win32PrioritySeparation" /t REG_DWORD /d "38" /f  >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d "0" /f  >nul 2>&1
+powercfg /h off  >nul 2>&1
+powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR CPMINCORES 100  >nul 2>&1
+powercfg /setacvalueindex SCHEME_CURRENT SUB_PCIEXPRESS ASPM 0  >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f  >nul 2>&1
 net stop RemoteRegistry >nul 2>&1
 net stop TermService >nul 2>&1
 net stop BthAvctpSvc >nul 2>&1
@@ -1560,18 +1560,18 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\Dwm" /v "OverlayTestMode" /t REG_DWORD 
 reg add "HKLM\SOFTWARE\Microsoft\Windows\Dwm" /v "MaxQueuedBuffers" /t REG_DWORD /d 2 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\Dwm" /v "ForceDoubleBuffer" /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\Dwm" /v "EnablePerProcessSystemScheduling" /t REG_DWORD /d 1 /f >nul 2>&1
-[cite_start]wmic process where "name='valorant.exe'" CALL setpriority 256 [cite: 313] >nul 2>&1
-[cite_start]wmic process where "name='csgo.exe'" CALL setpriority 256 [cite: 313] >nul 2>&1
-[cite_start]wmic process where "name='fortnite.exe'" CALL setpriority 256 [cite: 313] >nul 2>&1
-[cite_start]wmic process where "name='eldenring.exe'" CALL setpriority 256 [cite: 315] >nul 2>&1
-[cite_start]wmic process where "name='warzone.exe'" CALL setpriority 256 [cite: 315] >nul 2>&1
-[cite_start]wmic process where "name='apex.exe'" CALL setpriority 256 [cite: 315] >nul 2>&1
-[cite_start]wmic process where "name='r6s.exe'" CALL setpriority 256 [cite: 316] >nul 2>&1
-[cite_start]wmic process where "name='gta5.exe'" CALL setpriority 256 [cite: 316] >nul 2>&1
-[cite_start]wmic process where "name='overwatch.exe'" CALL setpriority 256 [cite: 316] >nul 2>&1
-[cite_start]wmic process where "name='game.exe'" CALL setpriority 256 [cite: 309] >nul 2>&1
-[cite_start]wmic process where "name='discord.exe'" CALL setpriority 128 [cite: 312] >nul 2>&1
-[cite_start]wmic process where "name='obs64.exe'" CALL setpriority 128 [cite: 312] >nul 2>&1
+wmic process where "name='valorant.exe'" CALL setpriority 256  >nul 2>&1
+wmic process where "name='csgo.exe'" CALL setpriority 256  >nul 2>&1
+wmic process where "name='fortnite.exe'" CALL setpriority 256  >nul 2>&1
+wmic process where "name='eldenring.exe'" CALL setpriority 256  >nul 2>&1
+wmic process where "name='warzone.exe'" CALL setpriority 256  >nul 2>&1
+wmic process where "name='apex.exe'" CALL setpriority 256  >nul 2>&1
+wmic process where "name='r6s.exe'" CALL setpriority 256  >nul 2>&1
+wmic process where "name='gta5.exe'" CALL setpriority 256  >nul 2>&1
+wmic process where "name='overwatch.exe'" CALL setpriority 256  >nul 2>&1
+wmic process where "name='game.exe'" CALL setpriority 256  >nul 2>&1
+wmic process where "name='discord.exe'" CALL setpriority 128  >nul 2>&1
+wmic process where "name='obs64.exe'" CALL setpriority 128  >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\%%~g\PerfOptions" /v "CpuPriorityClass" /t REG_DWORD /d 3 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\%%~g\PerfOptions" /v "IoPriority" /t REG_DWORD /d 3 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\%%~g\PerfOptions" /v "PagePriority" /t REG_DWORD /d 1 /f >nul 2>&1

@@ -66,8 +66,8 @@ REG DELETE "HKEY_LOCAL_MACHINE\SYSTEM\Setup\Upgrade\PnP\CurrentControlSet\Contro
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "GlobalTimerResolutionSeconds" /t REG_DWORD /d 1 /f >nul 2>&1
 bcdedit /deletevalue useplatformclock >nul 2>&1
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" /v "AffinityPolicy" /t REG_DWORD /d 0 /f >nul 2>&1
-[cite_start]bcdedit /set disabledynamictick yes [cite: 2303, 2760, 3334] >nul 2>&1
-[cite_start]powercfg /setacvalueindex SCHEME_CURRENT SUB_USB USBSELECTIVESUSPEND 0 [cite: 2195, 2302] >nul 2>&1
+bcdedit /set disabledynamictick yes  >nul 2>&1
+powercfg /setacvalueindex SCHEME_CURRENT SUB_USB USBSELECTIVESUSPEND 0  >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\usbuhci" /v "EnableSelectiveSuspend" /t REG_DWORD /d "0" /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\usbhub" /v "DisableSelectiveSuspend" /t REG_DWORD /d "1" /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Enum\%%a\Device Parameters" /f /v "EnhancedPowerManagementEnabled" /t REG_DWORD /d 0 >nul 2>&1

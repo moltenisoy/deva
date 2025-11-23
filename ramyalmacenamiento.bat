@@ -81,8 +81,8 @@ REG DELETE "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemSettings\SettingId\Syste
 REG DELETE "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SystemSettings\SettingId\SystemSettings_Maps_Storage_Options" /f >nul 2>&1
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "FeatureSettingsOverride" /t REG_DWORD /d 3 /f >nul 2>&1
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "FeatureSettingsOverrideMask" /t REG_DWORD /d 3 /f >nul 2>&1
-[cite_start]reg add "HKLM\SYSTEM\CurrentControlSet\Services\storahci\Parameters\Device" /v "EnableDIPM" /t REG_DWORD /d "0" /f [cite: 2124, 2235, 2334, 2437, 2446, 2746, 3334] >nul 2>&1
-[cite_start]reg add "HKLM\SYSTEM\CurrentControlSet\Services\storahci\Parameters\Device" /v "EnableHIPM" /t REG_DWORD /d "0" /f [cite: 2124, 2235, 2333, 2437, 2445, 2745, 3333] >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\storahci\Parameters\Device" /v "EnableDIPM" /t REG_DWORD /d "0" /f  >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\storahci\Parameters\Device" /v "EnableHIPM" /t REG_DWORD /d "0" /f  >nul 2>&1
 fsutil behavior set DisableDeleteNotify 0 >nul 2>&1
 fsutil behavior set disable8dot3 1 >nul 2>&1
 fsutil behavior set DisableLastAccess 1 >nul 2>&1
